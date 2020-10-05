@@ -1,12 +1,19 @@
+package database;
+
+import objects.Client;
+import objects.Employee;
+import services.Print;
+import services.Services;
+
 import java.sql.*;
 
 public class MySQLfunctions {
-    private static String url = "jdbc:mysql://localhost:3306/People";
-    private static String user = "root";
-    private static String password = "33gjgeufq";
+    private String url = "jdbc:mysql://localhost:3306/People";
+    private String user = "root";
+    private String password = "33gjgeufq";
+    public Print print = new Print();
 
-
-    public static Connection getConnection(){
+    public  Connection getConnection(){
         try {
             Connection con = DriverManager.getConnection(url, user, password);
             return con;
@@ -15,7 +22,7 @@ public class MySQLfunctions {
         return null;
     }
 
-    public static void InsertClient(String name, Integer age, String password,Integer salary, Boolean isPremium, Integer credit) throws SQLException {
+    public  void InsertClient(String name, Integer age, String password,Integer salary, Boolean isPremium, Integer credit) throws SQLException {
         Connection con = getConnection();
         String type = "client";
         PreparedStatement line = con.prepareStatement("INSERT INTO persons (Name, Age, Password, Salary, IsPremium, Type, Credit)" +
@@ -24,7 +31,7 @@ public class MySQLfunctions {
         con.close();
     }
 
-    public static void InsertEmployee(String name, Integer age, String password, String position, Integer accesslevel, Integer credit) throws SQLException{
+    public  void InsertEmployee(String name, Integer age, String password, String position, Integer accesslevel, Integer credit) throws SQLException{
         Connection con = getConnection();
         String type = "employee";
         PreparedStatement line = con.prepareStatement("INSERT INTO persons (Name, Age, Password, Position, AccessLevel, Type, Credit)" +
@@ -33,9 +40,10 @@ public class MySQLfunctions {
         con.close();
     }
 
-    public static String LogPerson(String password)throws SQLException {
+    public Services LogPerson(String password)throws SQLException {
         Connection con = getConnection();
         Integer num = 0;
+        Services services = new Services();
         PreparedStatement statement = con.prepareStatement("SELECT * FROM persons");
         ResultSet rs = statement.executeQuery();
         while (rs.next()){
@@ -48,9 +56,11 @@ public class MySQLfunctions {
                     Integer salary = rs.getInt("Salary");
                     Boolean isPremium = Boolean.parseBoolean(rs.getString("IsPremium"));
                     Integer credit = rs.getInt("Credit");
-                    Print.printout("Hello, " + name);
-                    Client.client = new Client(name, age, credit, salary, isPremium);
-                    return ("Goodbye, " + name);
+                    con.close();
+                    services.usertype = "client";
+                    services.clients.add(new Client(name, age, credit, Password,salary, isPremium));
+                    services.creditamount.put(name, credit);
+                    return services;
                 }
                 else if(type.equals("employee")){
                     String name = rs.getString("Name");
@@ -58,19 +68,21 @@ public class MySQLfunctions {
                     String position = rs.getString("Position");
                     Integer accessLevel = rs.getInt("AccessLevel");
                     Integer credit = rs.getInt("Credit");
-                    Print.printout("Hello, " + name);
-                    Employee.employee = new Employee(name, age, credit, position, accessLevel);
-                    return ("Goodbye, " + name);
+                    con.close();
+                    services.usertype = "employee";
+                    services.employees.add(new Employee(name, age, credit, Password,position, accessLevel));
+                    services.creditamount.put(name, credit);
+                    return services;
                 }
                 else continue;
             }
 
         }
-        con.close();
-        return ("Wrong password");
+        print.printout("Wrong password");
+        return null;
     }
 
-    public static void ChangeEmployeeProfile(Integer prevsum, Integer currSum) throws SQLException{
+    public void ChangeEmployeeProfile(Integer prevsum, Integer currSum, Services services) throws SQLException{
         Connection con = getConnection();
         PreparedStatement statement = con.prepareStatement("SELECT * FROM persons");
         ResultSet rs = statement.executeQuery();
@@ -81,8 +93,8 @@ public class MySQLfunctions {
             String position = rs.getString("Position");
             Integer accessLevel = rs.getInt("AccessLevel");
             Integer credit = rs.getInt("Credit");
-            if(name.equals(Employee.employee.Name)&&age.equals(Employee.employee.Age)
-                    &&position.equals(Employee.employee.Position)&&accessLevel.equals(Employee.employee.AccessLevel)
+            if(name.equals(services.employees.get(0).Name)&&age.equals(services.employees.get(0).Age)
+                    &&position.equals(services.employees.get(0).Position)&&accessLevel.equals(services.employees.get(0).AccessLevel)
                     &&credit.equals(prevsum)){
                 PreparedStatement deletestat = con.prepareStatement("DELETE FROM persons WHERE Password = '"+ password+"'");
                 deletestat.executeUpdate();
@@ -96,7 +108,7 @@ public class MySQLfunctions {
         con.close();
     }
 
-    public static void ChangeClientProfile(Integer prevsum, Integer currSum) throws SQLException{
+    public void ChangeClientProfile(Integer prevsum, Integer currSum,  Services services) throws SQLException{
         Connection con = getConnection();
         PreparedStatement statement = con.prepareStatement("SELECT * FROM persons");
         ResultSet rs = statement.executeQuery();
@@ -107,8 +119,8 @@ public class MySQLfunctions {
             Integer salary = rs.getInt("Salary");
             Boolean isPremium = Boolean.parseBoolean(rs.getString("IsPremium"));
             Integer credit = (rs.getInt("Credit"));
-            if(name.equals(Client.client.Name)&&age.equals(Client.client.Age)
-                    &&salary.equals(Client.client.Salary)&&isPremium.equals(Client.client.IsPremium)
+            if(name.equals(services.clients.get(0).Name)&&age.equals(services.clients.get(0).Age)
+                    &&salary.equals(services.clients.get(0).Salary)&&isPremium.equals(services.clients.get(0).IsPremium)
                     &&credit.equals(prevsum)){
                 PreparedStatement deletestat = con.prepareStatement("DELETE FROM persons WHERE Password = '"+ password +"'");
                 deletestat.executeUpdate();
