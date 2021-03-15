@@ -16,15 +16,12 @@ public class Menu {
     public void showmenu() throws Exception{
         Scanner myObj = new Scanner(System.in);
         int i;
-        //serialize.serializeIn();
-        //serialize.serializeOut();
         do{
             Getcommands();
             i = myObj.nextInt();
             switch (i){
                 case 1:{
                     signIn.signin();
-
                     break;
                 }
                 case 2:{
